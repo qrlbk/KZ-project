@@ -46,4 +46,4 @@ Open `SampleProject.xml` to try the app.
 
 ## License
 
-Use as you like.
+This project is licensed under the MIT License – see the `LICENSE` file for details.
