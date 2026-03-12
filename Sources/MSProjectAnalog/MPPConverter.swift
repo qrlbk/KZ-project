@@ -10,6 +10,11 @@ enum MPPConverter {
         defer { try? FileManager.default.removeItem(at: mppPath); try? FileManager.default.removeItem(at: xmlPath) }
         try mppData.write(to: mppPath)
 
+        // 0) Попытка использовать встроенный Java-конвертер (MPXJ JAR в ресурсах .app)
+        if let javaResult = try? convertWithJava(mppPath: mppPath, xmlPath: xmlPath) {
+            return javaResult
+        }
+
         let scriptPath = tempDir.appendingPathComponent("mpp_convert_\(UUID().uuidString).py")
         let script = """
         import sys
@@ -161,16 +166,31 @@ enum MPPConverter {
     }
 
     private static func convertWithJava(mppPath: URL, xmlPath: URL) throws -> Data {
-        // Expect MPXJ JAR in app bundle Resources or on PATH; not bundled by default
+        // Ожидаем, что в Resources .app лежит JAR с тонкой обёрткой над MPXJ,
+        // например `mpxj-converter.jar`, который принимает аргументы:
+        //   <input.mpp> <output.xml>
+        // и пишет MSPDI XML.
+        guard let resourcesURL = Bundle.main.resourceURL else {
+            throw MPPConverterError.javaFailed
+        }
+        let jarURL = resourcesURL.appendingPathComponent("mpxj-converter.jar")
+        guard FileManager.default.fileExists(atPath: jarURL.path) else {
+            throw MPPConverterError.javaFailed
+        }
+
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/java")
-        process.arguments = ["-jar", "mpxj.jar", mppPath.path, "-o", xmlPath.path]
-        process.currentDirectoryURL = Bundle.main.resourceURL
+        process.arguments = ["-jar", jarURL.path, mppPath.path, xmlPath.path]
+        process.currentDirectoryURL = resourcesURL
+        let errPipe = Pipe()
         process.standardOutput = FileHandle.nullDevice
-        process.standardError = FileHandle.nullDevice
+        process.standardError = errPipe
         try process.run()
         process.waitUntilExit()
-        guard process.terminationStatus == 0 else { throw MPPConverterError.javaFailed }
+        guard process.terminationStatus == 0 else {
+            _ = errPipe.fileHandleForReading.readDataToEndOfFile() // проглатываем stderr
+            throw MPPConverterError.javaFailed
+        }
         return try Data(contentsOf: xmlPath)
     }
 }

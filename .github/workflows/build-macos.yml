@@ -1,0 +1,39 @@
+# Сборка MS Project Analog для macOS на GitHub
+name: Build macOS
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-14  # macOS 14 (Sonoma), подходит под .macOS(.v13)
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build (Release)
+        run: |
+          swift build -c release
+
+      - name: Prepare .app bundle
+        run: |
+          mkdir -p MSProjectAnalog.app/Contents/MacOS
+          cp .build/release/MSProjectAnalog MSProjectAnalog.app/Contents/MacOS/
+          if [ ! -f MSProjectAnalog.app/Contents/Info.plist ]; then
+            cp Sources/MSProjectAnalog/Info.plist MSProjectAnalog.app/Contents/ 2>/dev/null || true
+          fi
+          # Минимальный Info.plist для .app, если его ещё нет
+          if ! plutil -lint MSProjectAnalog.app/Contents/Info.plist 2>/dev/null; then
+            printf '%s\n' '<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"><plist version="1.0"><dict><key>CFBundleExecutable</key><string>MSProjectAnalog</string><key>CFBundleIdentifier</key><string>com.msproject.analog</string><key>CFBundleName</key><string>MS Project Analog</string><key>CFBundlePackageType</key><string>APPL</string><key>LSMinimumSystemVersion</key><string>13.0</string><key>NSPrincipalClass</key><string>NSApplication</string></dict></plist>' > MSProjectAnalog.app/Contents/Info.plist
+          fi
+          chmod +x MSProjectAnalog.app/Contents/MacOS/MSProjectAnalog
+
+      - name: Upload app artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MSProjectAnalog-macOS
+          path: MSProjectAnalog.app

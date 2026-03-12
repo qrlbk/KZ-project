@@ -11,6 +11,9 @@ enum L10n {
     static let openFile = "Открыть файл"
     static let exportXML = "Экспорт в XML…"
     static let share = "Поделиться"
+    static let exportGanttPDF = "Экспорт диаграммы в PDF…"
+    static let exportGanttPNG = "Экспорт диаграммы в PNG…"
+    static let exportGanttJPEG = "Экспорт диаграммы в JPEG…"
 
     // Задачи
     static let addTask = "Добавить задачу"
@@ -86,7 +89,11 @@ enum L10n {
     // Ошибки
     static let exportFailed = "Ошибка экспорта"
     static let shareFailed = "Ошибка отправки"
+    static let exportGanttFailed = "Ошибка экспорта диаграммы"
 
     // Меню
     static let menuExportXML = "Экспорт в XML…"
+    static let menuExportGanttPDF = "Экспорт диаграммы в PDF…"
+    static let menuExportGanttPNG = "Экспорт диаграммы в PNG…"
+    static let menuExportGanttJPEG = "Экспорт диаграммы в JPEG…"
 }

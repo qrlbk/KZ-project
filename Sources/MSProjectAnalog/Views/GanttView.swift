@@ -3,30 +3,57 @@ import SwiftUI
 struct GanttView: View {
     let project: ProjectModel
 
+    @State private var zoomLevel: Int = 1
+    @State private var nameColumnWidth: CGFloat = 160
+    @State private var dragStartNameWidth: CGFloat?
+
+    private var dayWidth: CGFloat {
+        switch zoomLevel {
+        case 0: return 18
+        case 2: return 36
+        default: return 28
+        }
+    }
+
     private var dateRange: (start: Date, end: Date) {
         let starts = project.tasks.compactMap(\.start)
         let ends = project.tasks.compactMap(\.finish)
         let all = starts + ends
+
+        let calendar = Calendar.current
+
+        // Если задач нет — показываем месяц вперёд от стартовой даты проекта
         guard !all.isEmpty else {
             let d = project.startDate ?? Date()
-            return (d, Calendar.current.date(byAdding: .day, value: 30, to: d) ?? d)
+            return (d, calendar.date(byAdding: .day, value: 30, to: d) ?? d)
         }
+
         let minD = all.min()!
         let maxD = all.max()!
-        return (minD, maxD)
+
+        let rawDays = max(1, calendar.dateComponents([.day], from: minD, to: maxD).day ?? 1)
+        // Добавляем «воздух» только справа, чтобы было куда «смотреть вперёд»
+        let rightPaddingDays = max(10, rawDays / 5)
+
+        let paddedEnd = calendar.date(byAdding: .day, value: rightPaddingDays, to: maxD) ?? maxD
+
+        return (minD, paddedEnd)
     }
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack {
-                Text("Временная шкала задач. Полосы — длительность, оранжевые — вехи.")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                Spacer()
+            PanelHeader(
+                title: "Диаграмма Ганта",
+                subtitle: "Полосы — длительность задач, оранжевые — вехи"
+            ) {
+                Picker("", selection: $zoomLevel) {
+                    Text("Сжато").tag(0)
+                    Text("Обычно").tag(1)
+                    Text("Подробно").tag(2)
+                }
+                .pickerStyle(.segmented)
+                .frame(width: 220)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 10)
-            .background(Color(nsColor: .controlBackgroundColor))
 
             if project.tasks.isEmpty {
                 emptyGantt
@@ -56,10 +83,10 @@ struct GanttView: View {
         ScrollView([.horizontal, .vertical]) {
             let range = dateRange
             let days = max(1, Calendar.current.dateComponents([.day], from: range.start, to: range.end).day ?? 30)
-            let dayWidth: CGFloat = 28
             let rowHeight: CGFloat = 32
             let totalWidth = max(CGFloat(days) * dayWidth, 500)
             let totalHeight = CGFloat(project.tasks.count) * rowHeight
+            let labelWidth = nameColumnWidth
 
             ZStack(alignment: .topLeading) {
                 // Сетка по строкам
@@ -89,7 +116,7 @@ struct GanttView: View {
                             .foregroundStyle(.secondary)
                     }
                 }
-                .padding(.leading, 160)
+                .padding(.leading, labelWidth + 10)
 
                 // Линии зависимостей (под полосами)
                 GanttDependencyLines(
@@ -99,8 +126,34 @@ struct GanttView: View {
                     dayWidth: dayWidth,
                     rowHeight: rowHeight
                 )
-                .padding(.leading, 160)
+                .padding(.leading, labelWidth + 10)
                 .padding(.top, 24)
+
+                // Вертикальный разделитель между названиями задач и полосами (перетаскиваемый)
+                Rectangle()
+                    .fill(Color(nsColor: .separatorColor))
+                    .frame(width: 1, height: totalHeight + 24)
+                    .offset(x: labelWidth + 5, y: 24)
+
+                Rectangle()
+                    .fill(Color.clear)
+                    .contentShape(Rectangle())
+                    .frame(width: 10, height: totalHeight + 24)
+                    .offset(x: labelWidth, y: 24)
+                    .gesture(
+                        DragGesture()
+                            .onChanged { value in
+                                if dragStartNameWidth == nil {
+                                    dragStartNameWidth = nameColumnWidth
+                                }
+                                let start = dragStartNameWidth ?? nameColumnWidth
+                                let proposed = start + value.translation.width
+                                nameColumnWidth = min(max(100, proposed), 320)
+                            }
+                            .onEnded { _ in
+                                dragStartNameWidth = nil
+                            }
+                    )
 
                 // Названия задач и полосы
                 VStack(alignment: .leading, spacing: 0) {
@@ -109,7 +162,7 @@ struct GanttView: View {
                             Text(task.name.isEmpty ? "—" : task.name)
                                 .lineLimit(1)
                                 .font(.subheadline)
-                                .frame(width: 150, alignment: .leading)
+                                .frame(width: labelWidth, alignment: .leading)
                             if let start = task.start, let finish = task.finish {
                                 let s = Calendar.current.startOfDay(for: range.start)
                                 let startOffset = Calendar.current.dateComponents([.day], from: s, to: start).day ?? 0

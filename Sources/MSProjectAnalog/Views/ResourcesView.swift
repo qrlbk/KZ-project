@@ -13,24 +13,23 @@ struct ResourcesView: View {
     var body: some View {
         HSplitView {
             VStack(spacing: 0) {
-                HStack {
-                    Text("Ресурсы проекта (исполнители, материалы). Выберите ресурс для редактирования справа.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                    Spacer()
+                PanelHeader(
+                    title: "Ресурсы",
+                    subtitle: "Исполнители и материалы проекта. Выберите ресурс для редактирования справа."
+                ) {
                     Button(action: addResource) {
                         Label(L10n.addResource, systemImage: "plus")
                     }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(PrimaryToolbarButtonStyle())
+                    .keyboardShortcut("r", modifiers: [.command])
+
                     Button(action: deleteSelected) {
                         Label(L10n.delete, systemImage: "trash")
                     }
                     .buttonStyle(.bordered)
                     .disabled(selection.isEmpty)
+                    .keyboardShortcut(.delete, modifiers: [])
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 10)
-                .background(Color(nsColor: .controlBackgroundColor))
 
                 Table(project.resources, selection: $selection, sortOrder: $sortOrder) {
                     TableColumn(L10n.colId) { r in Text("\(r.uid)") }
@@ -101,9 +100,7 @@ struct ResourceInspectorView: View {
                         TextField(L10n.name, text: $resource.name)
                             .textFieldStyle(.roundedBorder)
                     } header: {
-                        Text(L10n.name)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                        SectionHeaderText(L10n.name)
                     }
 
                     Section {
@@ -119,9 +116,7 @@ struct ResourceInspectorView: View {
                         TextField(L10n.overtimeRate, value: $resource.overtimeRate, format: .number)
                             .textFieldStyle(.roundedBorder)
                     } header: {
-                        Text("Параметры")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                        SectionHeaderText("Параметры")
                     }
                 }
                 .formStyle(.grouped)

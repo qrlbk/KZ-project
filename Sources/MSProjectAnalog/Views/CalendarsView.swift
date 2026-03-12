@@ -14,34 +14,36 @@ struct CalendarsView: View {
     var body: some View {
         HSplitView {
             VStack(spacing: 0) {
-                HStack {
-                    Text("Календари проекта: рабочие дни и исключения.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                    Spacer()
+                PanelHeader(
+                    title: "Календари проекта",
+                    subtitle: "Рабочие дни и исключения"
+                ) {
                     Button(L10n.addCalendar, systemImage: "plus", action: addCalendar)
                         .buttonStyle(.borderedProminent)
                     Button(L10n.delete, systemImage: "trash", action: deleteSelected)
                         .buttonStyle(.bordered)
                         .disabled(selection.isEmpty)
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 10)
-                .background(Color(nsColor: .controlBackgroundColor))
 
                 List(project.calendars, selection: $selection) { cal in
-                    HStack {
-                        Text(cal.name.isEmpty ? "Календарь \(cal.uid)" : cal.name)
+                    HStack(spacing: 8) {
+                        Image(systemName: "calendar")
+                            .foregroundStyle(Color.accentColor)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(cal.name.isEmpty ? "Календарь \(cal.uid)" : cal.name)
+                            Text("№\(cal.uid)")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
                         Spacer()
-                        Text("№\(cal.uid)")
-                            .foregroundStyle(.secondary)
                     }
+                    .padding(.vertical, 2)
                 }
+                .listStyle(.inset)
 
                 if !project.calendars.isEmpty {
                     HStack {
-                        Text(L10n.projectCalendar)
-                            .font(.caption)
+                        SectionHeaderText(L10n.projectCalendar)
                         Picker("", selection: Binding(
                             get: { project.calendarUID },
                             set: { project.calendarUID = $0 }
@@ -54,6 +56,7 @@ struct CalendarsView: View {
                         .pickerStyle(.menu)
                     }
                     .padding(12)
+                    .background(Color(nsColor: .controlBackgroundColor))
                 }
             }
             .frame(minWidth: 220)
@@ -81,7 +84,9 @@ struct CalendarsView: View {
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
         }
+        .padding()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(nsColor: .windowBackgroundColor))
     }
 
     private func addCalendar() {
@@ -109,18 +114,22 @@ struct CalendarInspectorView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                Text("Календарь")
-                    .font(.headline)
-                    .padding(.bottom, 12)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Настройки календаря")
+                        .font(.title3)
+                        .bold()
+                    Text("Рабочая неделя и исключения")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.bottom, 12)
 
                 Form {
                     Section {
                         TextField(L10n.calendarName, text: $calendar.name)
                             .textFieldStyle(.roundedBorder)
                     } header: {
-                        Text(L10n.name)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                        SectionHeaderText(L10n.name)
                     }
 
                     Section {
@@ -128,9 +137,7 @@ struct CalendarInspectorView: View {
                             weekDayRow(dayType: i)
                         }
                     } header: {
-                        Text(L10n.workDays)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                        SectionHeaderText(L10n.workDays)
                     }
 
                     Section {
@@ -146,9 +153,7 @@ struct CalendarInspectorView: View {
                         }
                         AddExceptionButton(calendar: $calendar)
                     } header: {
-                        Text(L10n.exceptions)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                        SectionHeaderText(L10n.exceptions)
                     }
                 }
                 .formStyle(.grouped)

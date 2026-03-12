@@ -1,13 +1,22 @@
 import SwiftUI
 import AppKit
 
+private final class FocusTextField: NSTextField {
+    override var acceptsFirstResponder: Bool { true }
+
+    override func mouseDown(with event: NSEvent) {
+        window?.makeFirstResponder(self)
+        super.mouseDown(with: event)
+    }
+}
+
 /// Надёжный текстовый инпут для macOS: обёртка над NSTextField.
 struct AppKitTextField: NSViewRepresentable {
     @Binding var text: String
     var placeholder: String = ""
 
     func makeNSView(context: Context) -> NSTextField {
-        let field = NSTextField(string: text)
+        let field = FocusTextField(string: text)
         field.placeholderString = placeholder
         field.isEditable = true
         field.isSelectable = true

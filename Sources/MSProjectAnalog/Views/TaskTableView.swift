@@ -13,25 +13,23 @@ struct TaskTableView: View {
     var body: some View {
         HSplitView {
             VStack(spacing: 0) {
-                // Подсказка и кнопки
-                HStack {
-                    Text("Список задач проекта. Выберите задачу для редактирования в панели справа.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                    Spacer()
+                PanelHeader(
+                    title: "Задачи",
+                    subtitle: "Список задач проекта. Выберите задачу для редактирования справа."
+                ) {
                     Button(action: addTask) {
                         Label(L10n.addTask, systemImage: "plus")
                     }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(PrimaryToolbarButtonStyle())
+                    .keyboardShortcut("n", modifiers: [.command])
+
                     Button(action: deleteSelectedTasks) {
                         Label(L10n.delete, systemImage: "trash")
                     }
                     .buttonStyle(.bordered)
                     .disabled(selection.isEmpty)
+                    .keyboardShortcut(.delete, modifiers: [])
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 10)
-                .background(Color(nsColor: .controlBackgroundColor))
 
                 Table(project.tasks, selection: $selection, sortOrder: $sortOrder) {
                     TableColumn(L10n.colId) { task in Text("\(task.uid)") }
@@ -185,113 +183,98 @@ struct TaskInspectorView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: 8) {
             Text(L10n.inspectorTask)
                 .font(.headline)
-                .padding(.bottom, 12)
+                .padding(.bottom, 4)
 
-            // На macOS Form уже прокручиваемый; обёртка в ScrollView ломает ввод в полях.
-            Form {
-                Section {
-                    AppKitTextField(
-                        text: Binding(
-                            get: { task.name },
-                            set: { newValue in
-                                var t = task
-                                t.name = newValue
-                                task = t
-                            }
-                        ),
-                        placeholder: L10n.name
-                    )
-                } header: {
-                    Text(L10n.name)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-
-                Section {
-                    DatePicker("", selection: Binding(get: { task.start ?? Date() }, set: { task.start = $0 }), displayedComponents: .date)
-                    DatePicker("", selection: Binding(get: { task.finish ?? Date() }, set: { task.finish = $0 }), displayedComponents: .date)
-                    HStack {
-                        Text(L10n.duration)
-                        Spacer()
-                        Text(durationString(task.duration))
-                            .foregroundStyle(.secondary)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        SectionHeaderText(L10n.name)
+                        AppKitTextField(
+                            text: Binding(
+                                get: { task.name },
+                                set: { newValue in
+                                    var t = task
+                                    t.name = newValue
+                                    task = t
+                                }
+                            ),
+                            placeholder: L10n.name
+                        )
                     }
-                    Stepper(value: Binding(
-                        get: { Int(task.duration / 3600) },
-                        set: { h in
-                            task.duration = TimeInterval(h * 3600)
-                            if task.start != nil, task.finish == nil {
-                                task.finish = task.start!.addingTimeInterval(task.duration)
-                            } else if let start = task.start {
-                                task.finish = start.addingTimeInterval(task.duration)
-                            }
-                        }
-                    ), in: 0...8760) {
-                        Text("")
-                    }
-                    .labelsHidden()
-                } header: {
-                    Text("Сроки")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
 
-                Section {
-                    HStack {
-                        Text(L10n.completePercent(task.percentComplete))
-                        Spacer()
-                        Stepper("", value: $task.percentComplete, in: 0...100)
-                            .labelsHidden()
-                    }
-                } header: {
-                    Text(L10n.colPercentComplete)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-
-                Section {
-                    ForEach(Array(task.predecessorLinks.enumerated()), id: \.offset) { idx, link in
+                    VStack(alignment: .leading, spacing: 8) {
+                        SectionHeaderText("Сроки")
+                        DatePicker(L10n.start, selection: Binding(get: { task.start ?? Date() }, set: { task.start = $0 }), displayedComponents: .date)
+                        DatePicker(L10n.finish, selection: Binding(get: { task.finish ?? Date() }, set: { task.finish = $0 }), displayedComponents: .date)
                         HStack {
-                            Text(taskName(uid: link.predecessorUID))
-                                .lineLimit(1)
+                            Text(L10n.duration)
                             Spacer()
-                            Text(TaskInspectorView.linkTypeName(link.type))
-                                .font(.caption)
+                            Text(durationString(task.duration))
                                 .foregroundStyle(.secondary)
-                            Button(L10n.delete, role: .destructive) {
-                                var t = task
-                                t.predecessorLinks.remove(at: idx)
-                                task = t
+                        }
+                        Stepper(value: Binding(
+                            get: { Int(task.duration / 3600) },
+                            set: { h in
+                                task.duration = TimeInterval(h * 3600)
+                                if task.start != nil, task.finish == nil {
+                                    task.finish = task.start!.addingTimeInterval(task.duration)
+                                } else if let start = task.start {
+                                    task.finish = start.addingTimeInterval(task.duration)
+                                }
                             }
-                            .buttonStyle(.borderless)
+                        ), in: 0...8760) {
+                            Text("")
                         }
+                        .labelsHidden()
                     }
-                    AddPredecessorButton(task: $task, project: project)
-                } header: {
-                    Text(L10n.sectionPredecessors)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
 
-                Section {
-                    Picker(L10n.outlineLevel, selection: $task.outlineLevel) {
-                        ForEach(0..<10, id: \.self) { i in
-                            Text(L10n.level(i)).tag(i)
+                    VStack(alignment: .leading, spacing: 8) {
+                        SectionHeaderText(L10n.colPercentComplete)
+                        HStack {
+                            Text(L10n.completePercent(task.percentComplete))
+                            Spacer()
+                            Stepper("", value: $task.percentComplete, in: 0...100)
+                                .labelsHidden()
                         }
                     }
-                    .pickerStyle(.menu)
-                    Toggle(L10n.summary, isOn: $task.isSummary)
-                    Toggle(L10n.milestone, isOn: $task.isMilestone)
-                } header: {
-                    Text("Тип")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+
+                    VStack(alignment: .leading, spacing: 8) {
+                        SectionHeaderText(L10n.sectionPredecessors)
+                        ForEach(Array(task.predecessorLinks.enumerated()), id: \.offset) { idx, link in
+                            HStack {
+                                Text(taskName(uid: link.predecessorUID))
+                                    .lineLimit(1)
+                                Spacer()
+                                Text(TaskInspectorView.linkTypeName(link.type))
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                Button(L10n.delete, role: .destructive) {
+                                    var t = task
+                                    t.predecessorLinks.remove(at: idx)
+                                    task = t
+                                }
+                                .buttonStyle(.borderless)
+                            }
+                        }
+                        AddPredecessorButton(task: $task, project: project)
+                    }
+
+                    VStack(alignment: .leading, spacing: 8) {
+                        SectionHeaderText("Тип")
+                        Picker(L10n.outlineLevel, selection: $task.outlineLevel) {
+                            ForEach(0..<10, id: \.self) { i in
+                                Text(L10n.level(i)).tag(i)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                        Toggle(L10n.summary, isOn: $task.isSummary)
+                        Toggle(L10n.milestone, isOn: $task.isMilestone)
+                    }
                 }
             }
-            .formStyle(.grouped)
         }
         .padding()
         .background(Color(nsColor: .windowBackgroundColor))

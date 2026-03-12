@@ -6,17 +6,15 @@ struct ProjectPropertiesView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack {
-                Text(L10n.projectProperties)
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                Spacer()
+            PanelHeader(
+                title: L10n.projectProperties,
+                subtitle: "Основные параметры и календарь проекта"
+            ) {
                 Button("Готово") {
                     dismiss()
                 }
                 .keyboardShortcut(.defaultAction)
             }
-            .padding()
 
             Form {
                 Section {

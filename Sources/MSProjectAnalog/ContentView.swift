@@ -49,6 +49,28 @@ struct ContentView: View {
                 .help(L10n.exportXML)
             }
             ToolbarItem(placement: .primaryAction) {
+                Menu {
+                    Button(action: {
+                        ShareExportHelper.exportGanttToPDF(project: document.project, window: NSApp.keyWindow)
+                    }) {
+                        Text(L10n.exportGanttPDF)
+                    }
+                    Button(action: {
+                        ShareExportHelper.exportGanttToPNG(project: document.project, window: NSApp.keyWindow)
+                    }) {
+                        Text(L10n.exportGanttPNG)
+                    }
+                    Button(action: {
+                        ShareExportHelper.exportGanttToJPEG(project: document.project, window: NSApp.keyWindow)
+                    }) {
+                        Text(L10n.exportGanttJPEG)
+                    }
+                } label: {
+                    Label("Экспорт диаграммы", systemImage: "chart.bar.doc.horizontal")
+                }
+                .help("Экспорт диаграммы Ганта в PDF/PNG/JPEG")
+            }
+            ToolbarItem(placement: .primaryAction) {
                 Button(action: { ShareExportHelper.shareXML(project: document.project, window: NSApp.keyWindow) }) {
                     Label(L10n.share, systemImage: "square.and.arrow.up")
                 }
@@ -57,6 +79,15 @@ struct ContentView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .exportXML)) { _ in
             ShareExportHelper.exportToXML(project: document.project, window: NSApp.keyWindow)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .exportGanttPDF)) { _ in
+            ShareExportHelper.exportGanttToPDF(project: document.project, window: NSApp.keyWindow)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .exportGanttPNG)) { _ in
+            ShareExportHelper.exportGanttToPNG(project: document.project, window: NSApp.keyWindow)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .exportGanttJPEG)) { _ in
+            ShareExportHelper.exportGanttToJPEG(project: document.project, window: NSApp.keyWindow)
         }
         .alert("Ошибка открытия файла", isPresented: Binding(get: { openError != nil }, set: { if !$0 { openError = nil } })) {
             Button("OK", role: .cancel) { openError = nil }

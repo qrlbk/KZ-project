@@ -13,24 +13,23 @@ struct AssignmentsView: View {
     var body: some View {
         HSplitView {
             VStack(spacing: 0) {
-                HStack {
-                    Text("Назначения ресурсов на задачи. Выберите назначение для редактирования справа.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                    Spacer()
+                PanelHeader(
+                    title: "Назначения",
+                    subtitle: "Связи задач и ресурсов. Выберите строку для редактирования справа."
+                ) {
                     Button(action: addAssignment) {
                         Label(L10n.addAssignment, systemImage: "plus")
                     }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(PrimaryToolbarButtonStyle())
+                    .keyboardShortcut("a", modifiers: [.command])
+
                     Button(action: deleteSelected) {
                         Label(L10n.delete, systemImage: "trash")
                     }
                     .buttonStyle(.bordered)
                     .disabled(selection.isEmpty)
+                    .keyboardShortcut(.delete, modifiers: [])
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 10)
-                .background(Color(nsColor: .controlBackgroundColor))
 
                 Table(project.assignments, selection: $selection, sortOrder: $sortOrder) {
                     TableColumn(L10n.colId) { a in Text("\(a.uid)") }
@@ -150,9 +149,7 @@ struct AssignmentInspectorView: View {
                         ), format: .number)
                         .textFieldStyle(.roundedBorder)
                     } header: {
-                        Text("Параметры")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                        SectionHeaderText("Параметры")
                     }
                 }
                 .formStyle(.grouped)
