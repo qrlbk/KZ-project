@@ -1,0 +1,25 @@
+/.build
+/DerivedData
+/.DS_Store
+/.swiftpm
+
+# Xcode
+*.xccheckout
+*.xcscmblueprint
+*.xcuserstate
+*.xcworkspace
+xcuserdata/
+
+# SwiftPM
+.swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
+.swiftpm/xcode/xcshareddata/
+
+# Logs
+*.log
+
+# Python / virtualenvs
+venv/
+.venv/
+__pycache__/
+*.pyc
+

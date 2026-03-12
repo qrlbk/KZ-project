@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Project xmlns="http://schemas.microsoft.com/project/2007">
+<SaveVersion>12</SaveVersion>
+<UID>sample-1</UID>
+<Name>Sample Project</Name>
+<Title>Sample</Title>
+<ScheduleFromStart>1</ScheduleFromStart>
+<MinutesPerDay>480</MinutesPerDay>
+<MinutesPerWeek>2400</MinutesPerWeek>
+<CurrentDate>2025-03-11T12:00:00</CurrentDate>
+<StartDate>2025-03-10T08:00:00</StartDate>
+<FinishDate>2025-04-15T17:00:00</FinishDate>
+<DefaultStartTime>PT08H00M0S</DefaultStartTime>
+<DefaultFinishTime>PT17H00M0S</DefaultFinishTime>
+<Calendars>
+  <Calendar><UID>1</UID><Name>Standard</Name></Calendar>
+</Calendars>
+<Tasks>
+  <Task><UID>1</UID><ID>1</ID><Name>Phase 1</Name><OutlineLevel>0</OutlineLevel><Start>2025-03-10T08:00:00</Start><Finish>2025-03-14T17:00:00</Finish><Duration>PT40H0M0S</Duration><PercentComplete>0</PercentComplete><Summary>1</Summary></Task>
+  <Task><UID>2</UID><ID>2</ID><Name>Task 1.1</Name><OutlineLevel>1</OutlineLevel><Start>2025-03-10T08:00:00</Start><Finish>2025-03-11T17:00:00</Finish><Duration>PT16H0M0S</Duration><PercentComplete>50</PercentComplete><PredecessorLink><PredecessorUID>1</PredecessorUID><Type>1</Type></PredecessorLink></Task>
+  <Task><UID>3</UID><ID>3</ID><Name>Task 1.2</Name><OutlineLevel>1</OutlineLevel><Start>2025-03-12T08:00:00</Start><Finish>2025-03-14T17:00:00</Finish><Duration>PT24H0M0S</Duration><PercentComplete>0</PercentComplete><PredecessorLink><PredecessorUID>2</PredecessorUID><Type>1</Type></PredecessorLink></Task>
+  <Task><UID>4</UID><ID>4</ID><Name>Milestone</Name><OutlineLevel>0</OutlineLevel><Start>2025-03-14T17:00:00</Start><Finish>2025-03-14T17:00:00</Finish><Duration>PT0H0M0S</Duration><Milestone>1</Milestone><PredecessorLink><PredecessorUID>3</PredecessorUID><Type>1</Type></PredecessorLink></Task>
+</Tasks>
+<Resources>
+  <Resource><UID>1</UID><Name>Team Lead</Name><Type>1</Type><MaxUnits>1</MaxUnits><StdRate>0</StdRate><OvertimeRate>0</OvertimeRate></Resource>
+  <Resource><UID>2</UID><Name>Developer</Name><Type>1</Type><MaxUnits>2</MaxUnits><StdRate>0</StdRate><OvertimeRate>0</OvertimeRate></Resource>
+</Resources>
+<Assignments>
+  <Assignment><UID>1</UID><TaskUID>2</TaskUID><ResourceUID>1</ResourceUID><Units>1</Units><Work>PT16H0M0S</Work></Assignment>
+  <Assignment><UID>2</UID><TaskUID>3</TaskUID><ResourceUID>2</ResourceUID><Units>1</Units><Work>PT24H0M0S</Work></Assignment>
+</Assignments>
+</Project>
