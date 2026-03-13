@@ -32,8 +32,18 @@ jobs:
           fi
           chmod +x MSProjectAnalog.app/Contents/MacOS/MSProjectAnalog
 
+      - name: Create DMG
+        run: |
+          hdiutil create -volname "MS Project Analog" -srcfolder MSProjectAnalog.app -ov -format UDZO MSProjectAnalog-macOS.dmg
+
       - name: Upload app artifact
         uses: actions/upload-artifact@v4
         with:
-          name: MSProjectAnalog-macOS
+          name: MSProjectAnalog-macOS-app
           path: MSProjectAnalog.app
+
+      - name: Upload DMG artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MSProjectAnalog-macOS
+          path: MSProjectAnalog-macOS.dmg
